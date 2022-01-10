@@ -1,6 +1,15 @@
 .active {
     background: yellowgreen;
+    margin: 10px;
+padding: 10px;
 }
 .card {
     background: indianred;
+    margin: 10px;
+    padding: 10px; 
 }
+
+.newCard {
+    z-index: -5;
+}
+

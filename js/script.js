@@ -2,6 +2,7 @@ let tasks = [];
 
 let imgDone, imgEdit, imgTrash;
 let output = document.getElementById('output');
+let i = 0;
 
 imgDone = `
 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check2-square" viewBox="0 0 16 16">
@@ -26,30 +27,65 @@ imgTrash = `
 
 const addTodo = () => {
     const input = document.getElementById('input')
-    const todo = {
-        id: tasks.length + 1,
-        name: input.value,
-        completed: false
+    i = 0
+    if (input.value == '') {
+        alert('Напиши что либо!!')
+    } else {
+        const todo = {
+            id: tasks.length + 1,
+            name: input.value,
+            completed: false
+        }
+        tasks.push(todo)
+        input.value = ''
+        addToLocalStorage()
     }
-    tasks.push(todo)
-    input.value = ''
-    
-    renderTodos()
+
 }
 
 const renderTodos = () => {
-    
     output.innerHTML = ''
 
     tasks.forEach(element => {
         const card = document.createElement('div')
         const title = document.createElement('h3')
         const btns = document.createElement('div')
-        const done =  document.createElement('button')
+        const done = document.createElement('button')
         const edit = document.createElement('button')
-        const trash =  document.createElement('button')
+        const trash = document.createElement('button')
 
-        card.classList = (element.completed == true) ? 'active' : 'card'
+        let style = window.getComputedStyle(output)
+        style = +style.height.slice(0, -2)
+
+        done.addEventListener('click', () => {
+            i++
+            element.completed = !element.completed
+            addToLocalStorage()
+        })
+
+        if (element.id == tasks.length && i == 0 && tasks.length != 1 && element.completed != true) {
+            card.classList = 'newCard card'
+            card.animate([
+                {
+                    position: 'absolute',
+                    top: `${style}px`,
+                },
+                {
+                    top: `${style + 200}px`,
+                }
+            ], {
+                duration: 2000,
+                iterations: 1,
+            })
+        } else if (element.id == tasks.length && element.completed == true && i == 0) {
+            card.classList = 'newCard active'
+        }
+        else if (element.completed == true) {
+            card.classList = 'active'
+        }
+        else {
+            card.classList = 'card'
+        }
 
         title.innerHTML = element.name
         done.innerHTML = imgDone
@@ -61,23 +97,19 @@ const renderTodos = () => {
 
         output.append(card)
 
-        done.addEventListener('click', () => {
-            element.completed = !element.completed
-            renderTodos()
-        })
-
         trash.addEventListener('click', () => {
-            tasks = tasks.filter(item => {
-                if(item.id != element.id) {
-                    return true
-                }
-            })
-            renderTodos()
+            i++
+            tasks = tasks.filter(item => item.id != element.id)
+            addToLocalStorage()
         })
 
         edit.addEventListener('click', () => {
-            
-            renderTodos()
+            const userAnswer = confirm('Заменить?')
+            if (userAnswer == true) {
+                const newTask = prompt('New Task')
+                element.name = newTask
+            }
+            addToLocalStorage()
         })
 
     })
@@ -86,3 +118,16 @@ const renderTodos = () => {
 let addTask = document.getElementById('btnAdd')
 addTask.addEventListener('click', addTodo)
 
+const addToLocalStorage = () => {
+    localStorage.setItem('tasks', JSON.stringify(tasks))
+    renderTodos()
+}
+
+const getFromLocalStorage = () => {
+    const data = localStorage.getItem('tasks')
+    if (data) {
+        tasks = JSON.parse(data)
+        renderTodos()
+    }
+}
+getFromLocalStorage()
